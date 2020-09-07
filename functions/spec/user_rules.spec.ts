@@ -34,7 +34,7 @@ describe('firestore rules', () => {
     }).firestore();
   }
 
-  describe("user's rules", () => {
+  describe("user rules", () => {
     const alice_client = newFirebaseApp({uid: 'alice'});
 
     describe('write', () => {
