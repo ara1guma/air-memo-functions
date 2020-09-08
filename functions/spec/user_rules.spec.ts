@@ -38,63 +38,67 @@ describe('firestore rules', () => {
     const alice_client = newFirebaseApp({uid: 'alice'});
 
     describe('write', () => {
-      test('users can write the user document', () => {
+      test('users can write the user document', async () => {
         const alice_profile = alice_client.collection('users').doc('alice');
 
-        firebase.assertSucceeds(alice_profile.set({'name': 'alice'}))
+        await firebase.assertSucceeds(alice_profile.set({'name': 'alice'}))
       })
 
-      test('users cannot write other user documents', () => {
+      test('users cannot write other user documents', async () => {
         const rabbit_profile = alice_client.collection('users').doc('rabbit');
 
-        firebase.assertFails(rabbit_profile.set({'name': 'rabbit'}));
+        await firebase.assertFails(rabbit_profile.set({'name': 'rabbit'}));
       })
     })
 
     describe('read', () => {
-       alice_client.collection('users').doc('alice').set({'name': 'alice'});
-
-      test('all user can read all user documents', () => {
+      test('all user can read all user documents', async () => {
+        alice_client.collection('users').doc('alice').set({'name': 'alice'});
         const rabbit_client = newFirebaseApp({uid: 'rabbit'});
         const alice_profile = rabbit_client.collection('users').doc('alice');
 
-        firebase.assertSucceeds(alice_profile.get());
+        await firebase.assertSucceeds(alice_profile.get());
       })
-    })
+    });
 
     describe('update', () => {
       const alice_profile = alice_client.collection('users').doc('alice');
-      alice_profile.set({'name': 'alice'});
 
-      test('users can update the user document', () => {
-        firebase.assertSucceeds(alice_profile.update({'name': 'new alice'}));
-      })
+      test('users can update the user document', async () => {
+        alice_profile.set({'name': 'alice'});
 
-      test('users cannot update other user document', () => {
-        const rabbit_client = newFirebaseApp({ uid: 'rabbit' });
-        firebase.assertFails(
-          rabbit_client.collection('users').doc('alice').get()
+        await firebase.assertSucceeds(
+          alice_client.collection('users').doc('alice').update({'name': 'alice'})
         );
       })
-    })
+
+      test('users cannot update other user document', async () => {
+        alice_profile.set({'name': 'alice'});
+
+        const rabbit_client = newFirebaseApp({ uid: 'rabbit' });
+        await firebase.assertFails(
+          rabbit_client.collection('users').doc('alice').update({'name': 'new alice'})
+        );
+      })
+    });
 
     describe('delete', () => {
       const alice_profile = alice_client.collection('users').doc('alice');
 
-      test('users can delete the user document', () => {
+      test('users can delete the user document', async () => {
         alice_profile.set({'name': 'alice'});
 
-        firebase.assertSucceeds(alice_profile.delete());
+        await firebase.assertSucceeds(alice_profile.delete());
       })
 
-      test('users cannot delete other user documents', () => {
+      test('users cannot delete other user documents', async () => {
         alice_profile.set({'name': 'alice'});
 
         const rabbit_client = newFirebaseApp({ uid: 'rabbit' });
-        firebase.assertFails(
+        await firebase.assertFails(
           rabbit_client.collection('users').doc('alice').delete()
         );
       })
-    })
+    });
   })
 })
