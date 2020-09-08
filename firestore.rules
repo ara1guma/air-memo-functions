@@ -5,5 +5,12 @@ service cloud.firestore {
       allow write, update, delete: if request.auth.uid == userId;
       allow read: if true;
     }
+
+    match /users/{userId}/memos/{memoId} {
+      allow write, update, delete: if request.auth.uid == userId;
+      allow read: if (
+        /databases/$(database)/documents/users/$(request.auth.uid) in resource.data.readable_users
+      )
+    }
   }
 }
