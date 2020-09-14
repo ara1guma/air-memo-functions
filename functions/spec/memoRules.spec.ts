@@ -55,8 +55,14 @@ describe('firestore rules', () => {
     describe('read', () => {
       const memo = humpty.collection('users').doc('Humpty Dumpty').collection('memos').doc('0');
 
+      test('a user can read the user memo', async () => {
+        await memo.set({content: ''});
+
+        await firebase.assertSucceeds(memo.get());
+      })
+
       test('who is in a readable_users can read the memo', async () => {
-        memo.set({
+        await memo.set({
           content: 'memo!',
           readable_users: [humpty.collection('users').doc('Humpty Dumpty')]
         });
@@ -67,9 +73,9 @@ describe('firestore rules', () => {
       });
 
       test('who is not in a readable_users cannot read the memo', async () => {
-        memo.set({ content: 'memo!' });
+        await memo.set({ content: 'memo!' });
         await firebase.assertFails(
-          memo.get()
+          king.collection('users').doc('Humpty Dumpty').collection('memos').doc('0').get()
         );
       });
     })
