@@ -52,12 +52,21 @@ describe('firestore rules', () => {
     })
 
     describe('read', () => {
-      test('all user can read all user documents', async () => {
+      test('authed user can read all user documents', async () => {
         alice_client.collection('users').doc('alice').set({'name': 'alice'});
         const rabbit_client = newFirebaseApp({uid: 'rabbit'});
         const alice_profile = rabbit_client.collection('users').doc('alice');
 
         await firebase.assertSucceeds(alice_profile.get());
+      })
+
+      test('not authed user cannot read all user documents', async () => {
+        alice_client.collection('users').doc('alice').set({'name': 'alice'});
+        const notAuthedClient = firebase.initializeTestApp({ projectId: projectId }).firestore();
+
+        await firebase.assertFails(
+          notAuthedClient.collection('users').doc('alice').get()
+        )
       })
     });
 
