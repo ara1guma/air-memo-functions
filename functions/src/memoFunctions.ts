@@ -6,10 +6,10 @@ admin.initializeApp({
 })
 const firestore = admin.firestore();
 
-export const addReadableUser = functions.https.onRequest(async (request, response) => {
-  const memoId = request.query.memoId as string
-  const memoAuthorId = request.query.memoAuthorId as string
-  const requesterId = request.query.requesterId as string
+export const addReadableUser = functions.https.onCall(async (data, context) => {
+  const memoId = data.memoId as string
+  const memoAuthorId = data.memoAuthorId as string
+  const requesterId = data.requesterId as string
 
   const memoReference = await firestore.collection('users').doc(memoAuthorId).collection('memos').doc(memoId);
   const requesterReference = await firestore.collection('users').doc(requesterId);
@@ -20,5 +20,5 @@ export const addReadableUser = functions.https.onRequest(async (request, respons
     readable_users: memo.get('readable_users').concat([requesterReference])
   })
 
-  response.send('ok');
+  return 'ok'
 });
