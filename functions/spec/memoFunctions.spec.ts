@@ -1,7 +1,7 @@
 import * as firebase from '@firebase/testing'
 import * as fs from 'fs';
 import { mockReq, mockRes } from 'sinon-express-mock'
-import { addReadableUser } from '../src/memoFunctions';
+import { addReadableUser, removeReadableUser } from '../src/memoFunctions';
 
 jest.setTimeout(30000);
 
@@ -53,7 +53,7 @@ describe('memo functions', () => {
     }).firestore();
   }
 
-  const data = {
+  const requestData = {
     memoId: 'alice-memo',
     memoAuthorId: 'alice',
   }
@@ -66,10 +66,46 @@ describe('memo functions', () => {
         }
       }
 
-      await addReadableUser.run(mockReq(data), mockRes(context));
+      await addReadableUser.run(mockReq(requestData), mockRes(context));
 
       const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
       expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy;
+      done();
+    })
+  })
+
+  describe('removeReadableUser', async () => {
+    beforeEach(async () => {
+      await addReadableUser.run(mockRes(requestData), mockRes({ auth: { uid: 'rabbit' } }))
+    })
+
+    const data = {
+      memoId: 'alice-memo',
+      memoAuthorId: 'alice',
+      removedUserId: 'rabbit'
+    }
+
+    it('remove from readable users if the requester is the author', async (done) => {
+      await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'alice' } }));
+
+      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
+      expect(readableUsers).toBeFalsy;
+      done();      
+    })
+
+    it('remove if the requester is the removed user', async (done) => {
+      await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'rabbit' }}))
+
+      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
+      expect(readableUsers).toBeFalsy;
+      done();
+    })
+
+    it("don't remove in other cases", async (done) => {
+      await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'cat' }}))
+
+      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
+      expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy
       done();
     })
   })
