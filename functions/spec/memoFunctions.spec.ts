@@ -7,6 +7,11 @@ jest.setTimeout(30000);
 
 describe('memo functions', () => {
   const projectId = 'air-memo-app';
+  const alice = newFirebaseApp({ uid: 'alice' });
+  const aliceReference = alice.collection('users').doc('alice');
+
+  const rabbit = newFirebaseApp({ uid: 'rabbit' });
+  const rabbitReference = rabbit.collection('users').doc('rabbit');
 
   beforeAll(
     () => {
@@ -16,6 +21,16 @@ describe('memo functions', () => {
       });
     }
   )
+
+  beforeEach(async () => {
+    await aliceReference.set({ name: 'alice' });
+    await rabbitReference.set({ name: 'rabbit' });
+
+    await aliceReference.collection('memos').doc('alice-memo').set({
+      content: '',
+      readable_users: []
+    });
+  })
 
   afterEach(
     () => {
@@ -38,40 +53,25 @@ describe('memo functions', () => {
     }).firestore();
   }
 
+  const data = {
+    requesterId: 'rabbit',
+    memoId: 'alice-memo',
+    memoAuthorId: 'alice',
+  }
+
   describe('addReadableUser', () => {
-      const alice = newFirebaseApp({ uid: 'alice' });
-      const aliceReference = alice.collection('users').doc('alice');
-
-      const rabbit = newFirebaseApp({ uid: 'rabbit' });
-      const rabbitReference = rabbit.collection('users').doc('rabbit');
-
-      beforeEach(async () => {
-        await aliceReference.set({ name: 'alice' });
-        await aliceReference.collection('memos').doc('alice-memo').set({
-          content: '',
-          readable_users: []
-        });
-
-        await rabbitReference.set({ name: 'rabbit' });
-      })
-
-      it('add readable user to a memo', async (done) => {
-        const data = {
-          requesterId: 'rabbit',
-          memoId: 'alice-memo',
-          memoAuthorId: 'alice',
+    it('add readable user to a memo', async (done) => {
+      const context = {
+        auth: {
+          uid: 'alice'
         }
-        const context = {
-          auth: {
-            uid: 'alice'
-          }
-        }
+      }
 
-        await addReadableUser.run(mockReq(data), mockRes(context));
+      await addReadableUser.run(mockReq(data), mockRes(context));
 
-        const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
-        expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy;
-        done();
-      })
+      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
+      expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy;
+      done();
+    })
   })
 })
