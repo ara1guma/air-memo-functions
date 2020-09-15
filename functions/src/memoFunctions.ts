@@ -6,10 +6,10 @@ admin.initializeApp({
 })
 const firestore = admin.firestore();
 
-export const addReadableUser = functions.https.onRequest(async (request, response) => {
-  const memoId = request.query.memoId as string
-  const memoAuthorId = request.query.memoAuthorId as string
-  const requesterId = request.query.requesterId as string
+export const addReadableUser = functions.https.onCall(async (data, context) => {
+  const memoId = data.memoId as string
+  const memoAuthorId = data.memoAuthorId as string
+  const requesterId = context.auth?.uid as string
 
   const memoReference = await firestore.collection('users').doc(memoAuthorId).collection('memos').doc(memoId);
   const requesterReference = await firestore.collection('users').doc(requesterId);
@@ -20,5 +20,28 @@ export const addReadableUser = functions.https.onRequest(async (request, respons
     readable_users: memo.get('readable_users').concat([requesterReference])
   })
 
-  response.send('ok');
+  return 'ok'
 });
+
+export const removeReadableUser = functions.https.onCall(async (data, context) => {
+  const memoId = data.memoId as string
+  const memoAuthorId = data.memoAuthorId as string
+  const removedUserId = data.removedUserId as string;
+
+  if (!(context.auth!.uid in [memoAuthorId, removedUserId])) {
+    return 'permision denied'
+  }
+
+  const memoReference = await firestore.collection('users').doc(memoAuthorId).collection('memos').doc(memoId);
+  const removedUserReference = await firestore.collection('users').doc(removedUserId);
+
+  const memo = await memoReference.get();
+
+  await memoReference.update({
+    readable_users: memo.get('readable_users').filter(
+      (user: FirebaseFirestore.DocumentReference) => user.isEqual(removedUserReference)
+    )
+  })
+
+  return 'ok';
+})
