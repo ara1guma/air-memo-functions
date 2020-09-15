@@ -9,7 +9,7 @@ const firestore = admin.firestore();
 export const addReadableUser = functions.https.onCall(async (data, context) => {
   const memoId = data.memoId as string
   const memoAuthorId = data.memoAuthorId as string
-  const requesterId = data.requesterId as string
+  const requesterId = context.auth?.uid as string
 
   const memoReference = await firestore.collection('users').doc(memoAuthorId).collection('memos').doc(memoId);
   const requesterReference = await firestore.collection('users').doc(requesterId);

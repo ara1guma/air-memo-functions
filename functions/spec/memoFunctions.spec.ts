@@ -54,7 +54,6 @@ describe('memo functions', () => {
   }
 
   const data = {
-    requesterId: 'rabbit',
     memoId: 'alice-memo',
     memoAuthorId: 'alice',
   }
