@@ -7,3 +7,4 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 });
 
 export const addReadableUser = memoFunctions.addReadableUser;
+export const removeReadableUser = memoFunctions.removeReadableUser;
