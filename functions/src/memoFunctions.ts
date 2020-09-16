@@ -17,7 +17,7 @@ export const addReadableUser = functions.https.onCall(async (data, context) => {
   const memo = await memoReference.get();
 
   await memoReference.update({
-    readable_users: memo.get('readable_users').concat([requesterReference])
+    readableUsers: memo.get('readableUsers').concat([requesterReference])
   })
 
   return 'ok'
@@ -38,7 +38,7 @@ export const removeReadableUser = functions.https.onCall(async (data, context) =
   const memo = await memoReference.get();
 
   await memoReference.update({
-    readable_users: memo.get('readable_users').filter(
+    readableUsers: memo.get('readableUsers').filter(
       (user: FirebaseFirestore.DocumentReference) => user.isEqual(removedUserReference)
     )
   })

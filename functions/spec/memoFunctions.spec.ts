@@ -28,7 +28,7 @@ describe('memo functions', () => {
 
     await aliceReference.collection('memos').doc('alice-memo').set({
       content: '',
-      readable_users: []
+      readableUsers: []
     });
   })
 
@@ -68,7 +68,7 @@ describe('memo functions', () => {
 
       await addReadableUser.run(mockReq(requestData), mockRes(context));
 
-      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
+      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readableUsers
       expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy;
       done();
     })
@@ -88,7 +88,7 @@ describe('memo functions', () => {
     it('remove from readable users if the requester is the author', async (done) => {
       await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'alice' } }));
 
-      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
+      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readableUsers
       expect(readableUsers).toBeFalsy;
       done();      
     })
@@ -96,7 +96,7 @@ describe('memo functions', () => {
     it('remove if the requester is the removed user', async (done) => {
       await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'rabbit' }}))
 
-      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
+      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readableUsers
       expect(readableUsers).toBeFalsy;
       done();
     })
@@ -104,7 +104,7 @@ describe('memo functions', () => {
     it("don't remove in other cases", async (done) => {
       await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'cat' }}))
 
-      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readable_users
+      const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readableUsers
       expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy
       done();
     })
