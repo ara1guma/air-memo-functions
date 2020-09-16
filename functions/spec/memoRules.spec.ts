@@ -61,10 +61,10 @@ describe('firestore rules', () => {
         await firebase.assertSucceeds(memo.get());
       })
 
-      test('who is in a readable_users can read the memo', async () => {
+      test('who is in a readableUsers can read the memo', async () => {
         await memo.set({
           content: 'memo!',
-          readable_users: [humpty.collection('users').doc('Humpty Dumpty')]
+          readableUsers: [humpty.collection('users').doc('Humpty Dumpty')]
         });
 
         await firebase.assertSucceeds(
@@ -72,7 +72,7 @@ describe('firestore rules', () => {
         );
       });
 
-      test('who is not in a readable_users cannot read the memo', async () => {
+      test('who is not in a readableUsers cannot read the memo', async () => {
         await memo.set({ content: 'memo!' });
         await firebase.assertFails(
           king.collection('users').doc('Humpty Dumpty').collection('memos').doc('0').get()
