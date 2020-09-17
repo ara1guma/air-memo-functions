@@ -11,10 +11,20 @@ export const addReadableUser = functions.https.onCall(async (data, context) => {
   const memoAuthorId = data.memoAuthorId as string
   const requesterId = context.auth?.uid as string
 
+  if (!context.auth) {
+    return 'permission denied'
+  } else if (!(memoId && memoAuthorId)) {
+    return 'invalid request'
+  }
+
   const memoReference = await firestore.collection('users').doc(memoAuthorId).collection('memos').doc(memoId);
   const requesterReference = await firestore.collection('users').doc(requesterId);
 
   const memo = await memoReference.get();
+
+  if (!memo.exists) {
+    return 'not found memo'
+  }
 
   await memoReference.update({
     readableUsers: memo.get('readableUsers').concat([requesterReference])
