@@ -134,5 +134,35 @@ describe('memo functions', () => {
       expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy
       done();
     })
+
+    it('return "ok" when error was not happend', async (done) => {
+      const status = await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'alice' } }));
+      expect(status).toBe('ok')
+      done();   
+    })
+
+    it('return "permission denied" when the requester is not the author or himself', async (done) => {
+      const status = await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'cat' }}));
+      expect(status).toBe('permission denied')
+      done();
+    })
+
+    it('return "invalid request" when the memo is not found', async (done) => {
+      const status = await removeReadableUser.run(mockReq(), mockRes({ auth: { uid: 'alice' } }));
+      expect(status).toBe('invalid request');
+      done();
+    })
+
+    it('return "not found memo"', async (done) => {
+      const notExistMemo = {
+        memoId: 'to-do-list',
+        memoAuthorId: 'genger',
+        removedUserId: 'rabbit'
+      }
+
+      const status = await removeReadableUser.run(mockReq(notExistMemo), mockRes({ auth: { uid: 'rabbit' } }));
+      expect(status).toBe('not found memo');
+      done();
+    })
   })
 })

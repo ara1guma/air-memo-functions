@@ -38,14 +38,22 @@ export const removeReadableUser = functions.https.onCall(async (data, context) =
   const memoAuthorId = data.memoAuthorId as string
   const removedUserId = data.removedUserId as string;
 
-  if (!(context.auth!.uid in [memoAuthorId, removedUserId])) {
-    return 'permision denied'
+  if (!(memoId && memoAuthorId && removedUserId)) {
+    return 'invalid request'
+  }
+  if (!(context.auth!.uid == memoAuthorId || context.auth!.uid == removedUserId)) {
+    console.log(context.auth!.uid, removedUserId)
+    return 'permission denied'
   }
 
   const memoReference = await firestore.collection('users').doc(memoAuthorId).collection('memos').doc(memoId);
   const removedUserReference = await firestore.collection('users').doc(removedUserId);
 
   const memo = await memoReference.get();
+
+  if (!(memo.exists)) {
+    return 'not found memo'
+  }
 
   await memoReference.update({
     readableUsers: memo.get('readableUsers').filter(
