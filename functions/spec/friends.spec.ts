@@ -1,5 +1,7 @@
 import * as firebase from '@firebase/testing'
 import * as fs from 'fs';
+import { mockReq, mockRes } from 'sinon-express-mock'
+import { addFriend } from '../src/friendFunctions';
 
 const context = describe;
 
@@ -24,8 +26,8 @@ describe('friends', () => {
 
   beforeEach(
     async () => {
-      await dogReference.set({});
-      await catReference.set({});
+      await dogReference.set({ name: 'dog' });
+      await catReference.set({ name: 'cat' });
     }
   )
 
@@ -93,6 +95,56 @@ describe('friends', () => {
         await firebase.assertFails( dogFriendReference.set({}) );
         await firebase.assertFails( dogFriendReference.update({}) );
         await firebase.assertFails( dogFriendReference.delete() );
+        done();
+      })
+    })
+  })
+
+  describe('functions', () => {
+    describe('addFriend', () => {
+      const contextData = {
+        auth: {
+          uid: 'dog'
+        }
+      }
+
+      it('add friend', async (done) => {
+        const requestData = { targetId: 'cat' }
+        await addFriend.run(mockReq(requestData), mockRes(contextData));
+
+        const dogFriendCat = await admin.collection('users').doc('dog').collection('friends').doc('cat').get();
+        const catFriendDog = await admin.collection('users').doc('cat').collection('friends').doc('dog').get();
+
+        expect(dogFriendCat.exists).toBe(true);
+        expect(catFriendDog.exists).toBe(true);
+        done();
+      })
+
+      it('return "ok" if the request was passed', async (done) => {
+        await catReference.set({ name: 'cat' });
+        const requestData = { targetId: 'cat' }
+        const status = await addFriend.run(mockReq(requestData), mockRes(contextData));
+        expect(status).toBe('ok');
+        done();
+      })
+
+      it('return "permission denied" if the client is not authed', async (done) => {
+        const requestData = { targetId: 'cat' }
+        const status = await addFriend.run(mockReq(requestData), mockRes({}));
+        expect(status).toBe('permission denied');
+        done();
+      })
+
+      it('return "not found target" if the traget was not found', async (done) => {
+        const requestData = { targetId: 'Genger' }
+        const status = await addFriend.run(mockReq(requestData), mockRes(contextData));
+        expect(status).toBe('not found target');
+        done();
+      })
+
+      it('return "invalid request" if targetId was not setted', async (done) => {
+        const status = await addFriend.run(mockReq(), mockRes(contextData));
+        expect(status).toBe('invalid request');
         done();
       })
     })
