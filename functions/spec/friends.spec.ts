@@ -1,7 +1,7 @@
 import * as firebase from '@firebase/testing'
 import * as fs from 'fs';
 import { mockReq, mockRes } from 'sinon-express-mock'
-import { addFriend } from '../src/friendFunctions';
+import { addFriend, removeFriend } from '../src/friendFunctions';
 
 const context = describe;
 
@@ -101,13 +101,13 @@ describe('friends', () => {
   })
 
   describe('functions', () => {
-    describe('addFriend', () => {
-      const contextData = {
-        auth: {
-          uid: 'dog'
-        }
+    const contextData = {
+      auth: {
+        uid: 'dog'
       }
+    }
 
+    describe('addFriend', () => {
       it('add friend', async (done) => {
         const requestData = { targetId: 'cat' }
         await addFriend.run(mockReq(requestData), mockRes(contextData));
@@ -144,6 +144,44 @@ describe('friends', () => {
 
       it('return "invalid request" if targetId was not setted', async (done) => {
         const status = await addFriend.run(mockReq(), mockRes(contextData));
+        expect(status).toBe('invalid request');
+        done();
+      })
+    })
+
+    describe('removeFriend', () => {
+      beforeEach(async () => {
+        await admin.collection('users').doc('dog').collection('friends').doc('cat').set({});
+      })
+
+      it('remove friend', async (done) => {
+        const request = { targetId: 'cat' }
+        await removeFriend.run(mockRes(request), mockRes(contextData))
+
+        const dogKnowCat = await admin.collection('users').doc('dog').collection('friends').doc('cat').get();
+        const catKnowDog = await admin.collection('users').doc('cat').collection('friends').doc('dog').get();
+
+        expect(dogKnowCat.exists).toBe(false);
+        expect(catKnowDog.exists).toBe(false);
+        done();
+      })
+
+      it('return "ok" if the request was passed', async (done) => {
+        const request = { targetId: 'cat' }
+        const status = await removeFriend.run(mockRes(request), mockRes(contextData))
+        expect(status).toBe('ok');
+        done();
+      })
+
+      it('return "permission denied" if the client is not authed', async (done) => {
+        const request = { targetId: 'cat' }
+        const status = await removeFriend.run(mockRes(request), mockRes())
+        expect(status).toBe('permission denied');
+        done();
+      })
+
+      it('return "invalid request" if targetId was not setted', async (done) => {
+        const status = await removeFriend.run(mockRes(), mockRes(contextData))
         expect(status).toBe('invalid request');
         done();
       })
