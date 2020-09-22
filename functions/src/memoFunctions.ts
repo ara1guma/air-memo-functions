@@ -42,7 +42,6 @@ export const removeReadableUser = functions.https.onCall(async (data, context) =
     return 'invalid request'
   }
   if (!(context.auth!.uid == memoAuthorId || context.auth!.uid == removedUserId)) {
-    console.log(context.auth!.uid, removedUserId)
     return 'permission denied'
   }
 
