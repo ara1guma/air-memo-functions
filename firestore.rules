@@ -12,5 +12,10 @@ service cloud.firestore {
         /databases/$(database)/documents/users/$(request.auth.uid) in resource.data.readableUsers
       )
     }
+
+    match /users/{userId}/friends/{friendId} {
+      allow read: if request.auth.uid == userId;
+      allow write, update, delete: if false;
+    }
   }
 }
