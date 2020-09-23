@@ -14,8 +14,8 @@ export const addFriend = functions.https.onCall(async (data, context) => {
     return 'invalid request'
   }
 
-  const targetId = data.targetId as string;
-  const requesterId = context.auth?.uid as string;
+  const targetId = data.targetId;
+  const requesterId = context.auth.uid;
 
   const targetReference = firestore.collection('users').doc(targetId);
   const requesterReference = firestore.collection('users').doc(requesterId);
@@ -43,7 +43,7 @@ export const removeFriend = functions.https.onCall(async (data, context) => {
   }
 
   const targetId = data.targetId as string;
-  const requesterId = context.auth.uid as string;
+  const requesterId = context.auth.uid;
 
   const targetReference = firestore.collection('users').doc(targetId);
   const requesterReference = firestore.collection('users').doc(requesterId);
