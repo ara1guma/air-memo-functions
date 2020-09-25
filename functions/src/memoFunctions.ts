@@ -56,7 +56,7 @@ export const removeReadableUser = functions.https.onCall(async (data, context) =
 
   await memoReference.update({
     readableUsers: memo.get('readableUsers').filter(
-      (user: FirebaseFirestore.DocumentReference) => user.isEqual(removedUserReference)
+      (user: FirebaseFirestore.DocumentReference) => !user.isEqual(removedUserReference)
     )
   })
 
