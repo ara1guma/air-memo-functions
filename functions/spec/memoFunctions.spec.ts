@@ -65,7 +65,7 @@ describe('memo functions', () => {
       await addReadableUser.run(mockReq(requestData), mockRes(authData));
 
       const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readableUsers
-      expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy;
+      expect(readableUsers).toEqual([aliceReference.path])
       done();
     })
 
@@ -131,7 +131,7 @@ describe('memo functions', () => {
       await removeReadableUser.run(mockReq(data), mockRes({ auth: { uid: 'cat' }}))
 
       const readableUsers = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readableUsers
-      expect(readableUsers[0].isEqual(rabbitReference)).toBeTruthy
+      expect(readableUsers).toEqual([rabbitReference.path])
       done();
     })
 
