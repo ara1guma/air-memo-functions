@@ -26,9 +26,12 @@ export const addReadableUser = functions.https.onCall(async (data, context) => {
     return 'not found memo'
   }
 
-  await memoReference.update({
-    readableUsers: memo.get('readableUsers').concat([requesterReference.path])
-  })
+  const readableUsers: Array<string> = (await memoReference.get()).data()!.readableUsers
+  if(!(readableUsers.includes(`users/${requesterId}`))) {
+    await memoReference.update({
+      readableUsers: memo.get('readableUsers').concat([requesterReference.path])
+    })
+  }
 
   return 'ok'
 });

@@ -69,6 +69,15 @@ describe('memo functions', () => {
       done();
     })
 
+    it('add only onece', async (done) => {
+      await addReadableUser.run(mockReq(requestData), mockRes(authData));
+      await addReadableUser.run(mockReq(requestData), mockRes(authData)); // Do twice
+
+      const readableUsers: Array<string> = (await aliceReference.collection('memos').doc('alice-memo').get()).data()!.readableUsers
+      expect(readableUsers.length).toEqual(1)
+      done();
+    })
+
     it('return "ok" when error was not happend', async (done) => {
       const status = await addReadableUser.run(mockReq(requestData), mockRes(authData));
 
